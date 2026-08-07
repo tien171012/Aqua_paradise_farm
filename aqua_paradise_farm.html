@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Aqua Paradise Pro - Trang Trại Thú Biển</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --deep:#031a2e; --mid:#0b3d5c; --bright:#12a4d9; --foam:#bdf2ff;
+    --coral:#ff7f5c; --coral-dark:#e2603f; --gold:#ffd166; --panel:#0e2f47;
+    --panel-light:#123c5a; --good:#4fd889; --bad:#ff6b6b; --lock:#5a7488;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Nunito',sans-serif;background:linear-gradient(180deg,var(--bright) 0%,var(--mid) 40%,var(--deep) 100%);min-height:100vh;color:#eaf7ff;}
+  .app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative;}
+  header{background:linear-gradient(180deg,#1bb7e8,#0d84b5);padding:14px 16px 10px;box-shadow:0 4px 14px rgba(0,0,0,.25);position:sticky;top:0;z-index:20;}
+  header h1{font-family:'Baloo 2',sans-serif;font-size:20px;letter-spacing:.5px;margin:0 0 10px;text-shadow:0 2px 0 rgba(0,0,0,.2);}
+  .stat-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .pill{background:rgba(3,26,46,.45);border-radius:999px;padding:5px 12px;font-weight:700;font-size:13px;display:flex;align-items:center;gap:5px;}
+  .xp-wrap{flex:1 1 100%;margin-top:8px;}
+  .xp-bar-bg{background:rgba(3,26,46,.5);height:10px;border-radius:999px;overflow:hidden;}
+  .xp-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),#fff3c4);transition:width .3s ease;}
+  .xp-label{font-size:11px;opacity:.85;margin-top:3px;}
+  nav.tabs{display:flex;background:var(--panel);position:sticky;top:78px;z-index:19;border-bottom:2px solid rgba(255,255,255,.06);overflow-x:auto;}
+  nav.tabs button{flex:1;padding:12px 4px;background:none;border:none;color:#8fb8cf;font-family:'Baloo 2',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;}
+  nav.tabs button.active{color:#fff;border-bottom:3px solid var(--coral);background:rgba(255,255,255,.03);}
+  main{flex:1;padding:14px 14px 90px;}
+  .view{display:none;}
+  .view.active{display:block;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+  .section-title{font-family:'Baloo 2',sans-serif;font-size:15px;margin:18px 0 8px;color:var(--foam);display:flex;align-items:center;gap:6px;}
+  .section-title:first-child{margin-top:0;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .card{background:linear-gradient(160deg,var(--panel-light),var(--panel));border-radius:14px;padding:10px;border:1px solid rgba(255,255,255,.06);position:relative;overflow:hidden;}
+  .card.locked{filter:grayscale(.7);opacity:.6;}
+  .card .emoji{font-size:30px;display:block;text-align:center;margin-bottom:4px;}
+  .card .name{font-weight:800;font-size:13px;text-align:center;margin-bottom:2px;}
+  .card .sub{font-size:11px;text-align:center;color:#9dc4dc;margin-bottom:6px;}
+  .card .owned-badge{position:absolute;top:6px;right:6px;background:var(--coral);border-radius:999px;font-size:11px;font-weight:800;padding:1px 7px;}
+  .lock-badge{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;background:rgba(3,20,33,.55);gap:4px;}
+  .lock-badge .lockicon{font-size:20px;}
+  .lock-badge span{font-size:11px;font-weight:800;color:#dff1fb;}
+  .progress-bg{background:rgba(0,0,0,.35);height:7px;border-radius:999px;overflow:hidden;margin:6px 0;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,#4fd889,#8bffc0);transition:width .5s linear;}
+  button.buy, button.action{width:100%;border:none;border-radius:10px;padding:8px 6px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:12.5px;cursor:pointer;color:#fff;background:linear-gradient(180deg,var(--coral),var(--coral-dark));box-shadow:0 3px 0 #a6432a;}
+  button.buy:active, button.action:active{transform:translateY(2px);box-shadow:none;}
+  button.buy:disabled, button.action:disabled{background:#3a4a58;box-shadow:0 3px 0 #26323c;cursor:not-allowed;color:#8fa4b3;}
+  .empty-hint{text-align:center;padding:30px 16px;color:#8fb8cf;font-size:13px;background:rgba(255,255,255,.03);border-radius:14px;border:1px dashed rgba(255,255,255,.15);}
+  .egg-row{display:flex;align-items:center;gap:10px;background:linear-gradient(160deg,var(--panel-light),var(--panel));border-radius:14px;padding:10px 12px;margin-bottom:8px;border:1px solid rgba(255,255,255,.06);}
+  .egg-row .emoji{font-size:24px;}
+  .egg-row .info{flex:1;}
+  .egg-row .info .name{font-size:13px;font-weight:800;}
+  .egg-row .info .price{font-size:11px;color:var(--gold);}
+  .egg-row .qty{font-size:15px;font-weight:800;min-width:28px;text-align:center;}
+  .egg-row button.sell{background:linear-gradient(180deg,var(--gold),#e0a935);box-shadow:0 3px 0 #a97a1d;color:#3a2600;border:none;border-radius:10px;padding:7px 12px;font-weight:800;font-family:'Baloo 2',sans-serif;font-size:12px;cursor:pointer;}
+  .egg-row button.sell:disabled{background:#3a4a58;box-shadow:0 3px 0 #26323c;color:#8fa4b3;cursor:not-allowed;}
+  .sell-all-bar{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.04);border-radius:12px;padding:10px 12px;margin-bottom:12px;}
+  .sell-all-bar button{background:linear-gradient(180deg,var(--bright),#0b7ea6);color:#fff;border:none;border-radius:10px;padding:9px 16px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 3px 0 #075873;}
+  .bottombar{position:fixed;left:0;right:0;bottom:0;max-width:480px;margin:0 auto;background:var(--panel);display:flex;padding:8px 6px calc(8px + env(safe-area-inset-bottom));gap:4px;border-top:2px solid rgba(255,255,255,.06);z-index:25;}
+  .bottombar button{flex:1;background:none;border:none;color:#8fb8cf;font-family:'Baloo 2',sans-serif;font-size:10.5px;font-weight:700;padding:6px 0;border-radius:10px;cursor:pointer;}
+  .bottombar button.active{background:rgba(255,255,255,.08);color:#fff;}
+  .bottombar button .ic{display:block;font-size:18px;margin-bottom:2px;}
+  .toast{position:fixed;left:50%;top:14px;transform:translateX(-50%);background:rgba(3,26,46,.95);border:1px solid rgba(255,255,255,.15);padding:9px 16px;border-radius:999px;font-size:12.5px;font-weight:700;z-index:99;opacity:0;pointer-events:none;transition:opacity .25s,top .25s;max-width:90%;text-align:center;}
+  .toast.show{opacity:1;top:22px;}
+  .field-label{font-size:12px;display:block;margin-top:10px;color:#bdf2ff;}
+  .field-input{width:100%;margin-top:6px;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.3);color:#eaf7ff;font-size:13px;}
+  .withdraw-panel{background:rgba(255,255,255,.03);border-radius:14px;padding:14px;}
+  .withdraw-panel .hint{font-size:11px;color:#9dc4dc;line-height:1.5;}
+  .wd-history-item{background:linear-gradient(160deg,var(--panel-light),var(--panel));border-radius:12px;padding:10px 12px;margin-bottom:8px;border:1px solid rgba(255,255,255,.06);font-size:12px;}
+  .wd-history-item .top{display:flex;justify-content:space-between;font-weight:800;}
+  .wd-status{padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:800;}
+  .wd-status.pending{background:rgba(255,209,102,.2);color:var(--gold);}
+  .wd-status.approved{background:rgba(79,216,137,.2);color:var(--good);}
+  .wd-status.rejected{background:rgba(255,107,107,.2);color:var(--bad);}
+  .conn-banner{background:rgba(255,107,107,.15);border:1px solid var(--bad);border-radius:12px;padding:10px 12px;font-size:12px;margin-bottom:12px;display:none;}
+  .conn-banner.show{display:block;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <h1>🐚 AQUA PARADISE PRO</h1>
+    <div class="stat-row">
+      <div class="pill">⭐ Cấp <span id="lvlText">1</span></div>
+      <div class="pill">💰 <span id="goldText">0</span></div>
+      <div class="pill">🥚 <span id="eggTotalText">0</span></div>
+      <div class="pill">💎 <span id="diamondText">0</span></div>
+      <div class="xp-wrap">
+        <div class="xp-bar-bg"><div class="xp-bar-fill" id="xpFill" style="width:0%"></div></div>
+        <div class="xp-label"><span id="xpText">0/500</span> XP đến cấp tiếp theo</div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button data-view="farm" class="active">🏝️ Trang trại</button>
+    <button data-view="shop">🛒 Mua thú</button>
+    <button data-view="market">💱 Bán trứng</button>
+    <button data-view="withdraw">💸 Rút tiền</button>
+  </nav>
+
+  <main>
+    <div id="connBanner" class="conn-banner">⚠️ Không kết nối được máy chủ. Dữ liệu có thể chưa cập nhật mới nhất.</div>
+
+    <!-- FARM VIEW -->
+    <section id="view-farm" class="view active">
+      <div class="section-title">🏝️ Thú đang nuôi</div>
+      <div id="farmGrid" class="grid"></div>
+      <div id="farmEmpty" class="empty-hint" style="display:none;">
+        Bạn chưa nuôi con thú biển nào cả.<br>Sang tab <b>🛒 Mua thú</b> để bắt đầu trang trại nhé!
+      </div>
+    </section>
+
+    <!-- SHOP VIEW -->
+    <section id="view-shop" class="view">
+      <div id="shopContent"></div>
+    </section>
+
+    <!-- MARKET VIEW -->
+    <section id="view-market" class="view">
+      <div class="sell-all-bar">
+        <div style="font-size:12.5px;">Bán hết toàn bộ trứng đang có</div>
+        <button id="btnSellAll" onclick="sellAllEggs()">Bán tất cả</button>
+      </div>
+      <div id="marketList"></div>
+      <div id="marketEmpty" class="empty-hint" style="display:none;">
+        Chưa có quả trứng nào để bán.<br>Nuôi thú ở tab <b>🏝️ Trang trại</b> và chờ chúng đẻ trứng nhé!
+      </div>
+    </section>
+
+    <!-- WITHDRAW VIEW -->
+    <section id="view-withdraw" class="view">
+      <div class="section-title">💎 Bước 1: Đổi vàng sang Kim cương</div>
+      <div class="withdraw-panel">
+        <div class="hint">Tỉ giá cố định: <b>800.000 xu = 1 💎 Kim cương</b>. Kim cương dùng để rút ra tiền thật.</div>
+        <label class="field-label">Số kim cương muốn đổi</label>
+        <input id="kcAmount" type="number" min="1" step="1" placeholder="Ví dụ: 1" class="field-input" oninput="updateKcCost()">
+        <div class="hint" style="margin-top:6px;">Cần <b id="kcCostPreview">0</b> vàng — bạn đang có <b id="kcGoldNow">0</b> vàng.</div>
+        <button class="action" style="margin-top:10px;" onclick="convertDiamond()">Đổi sang Kim cương</button>
+      </div>
+
+      <div class="section-title">💸 Bước 2: Rút Kim cương ra tiền thật</div>
+      <div class="withdraw-panel">
+        <div class="hint">Tỉ giá: <b>1 💎 Kim cương = 500đ</b>. Yêu cầu sẽ được trừ kim cương ngay và chuyển vào hàng chờ để quản trị viên kiểm tra, duyệt và thanh toán thủ công.</div>
+
+        <label class="field-label">Số kim cương muốn rút</label>
+        <input id="wdAmount" type="number" min="4" max="10" step="1" placeholder="Từ 4 đến 10 kim cương" class="field-input" oninput="updateWdVnd()">
+        <div class="hint" style="margin-top:6px;">Tương đương <b id="wdVndPreview">0đ</b> — bạn đang có <b id="wdKcNow">0</b> 💎.</div>
+
+        <label class="field-label">Hình thức rút</label>
+        <select id="wdMethod" class="field-input" onchange="toggleWithdrawFields()">
+          <option value="zalopay">📱 Ví ZaloPay</option>
+          <option value="bank">🏦 Chuyển khoản ngân hàng</option>
+        </select>
+
+        <div id="wdFieldsWallet">
+          <label class="field-label">Số điện thoại ví ZaloPay</label>
+          <input id="wdWalletNumber" type="text" placeholder="09xxxxxxxx" class="field-input">
+        </div>
+
+        <div id="wdFieldsBank" style="display:none;">
+          <label class="field-label">Tên ngân hàng</label>
+          <select id="wdBankName" class="field-input">
+            <option>Vietcombank</option><option>Techcombank</option><option>BIDV</option>
+            <option>Agribank</option><option>MB Bank</option><option>ACB</option>
+            <option>VPBank</option><option>Sacombank</option><option>TPBank</option><option>Khác</option>
+          </select>
+          <label class="field-label">Số tài khoản</label>
+          <input id="wdAccountNumber" type="text" placeholder="Số tài khoản ngân hàng" class="field-input">
+          <label class="field-label">Chủ tài khoản</label>
+          <input id="wdAccountHolder" type="text" placeholder="NGUYEN VAN A" class="field-input">
+        </div>
+
+        <button class="action" style="margin-top:14px;" onclick="submitWithdraw()">Gửi yêu cầu rút tiền</button>
+      </div>
+
+      <div class="section-title">📜 Lịch sử yêu cầu</div>
+      <div id="withdrawHistoryList"></div>
+      <div id="withdrawEmpty" class="empty-hint" style="display:none;">Bạn chưa gửi yêu cầu rút tiền nào.</div>
+    </section>
+  </main>
+
+  <div class="bottombar">
+    <button data-view="farm" class="active"><span class="ic">🏝️</span>Trang trại</button>
+    <button data-view="shop"><span class="ic">🛒</span>Mua thú</button>
+    <button data-view="market"><span class="ic">💱</span>Bán trứng</button>
+    <button data-view="withdraw"><span class="ic">💸</span>Rút tiền</button>
+  </div>
+
+  <div id="toast" class="toast"></div>
+</div>
+
+<script>
+/* =========================================================================
+   CẤU HÌNH — ĐỔI DÒNG DƯỚI THÀNH URL BACKEND (server.js) BẠN ĐÃ TRIỂN KHAI
+   ========================================================================= */
+const API_BASE = "https://your-backend-domain.com"; // TODO: thay bằng URL server thật
+
+/* Danh sách con vật CHỈ dùng để hiển thị (tên/emoji/mô tả).
+   Giá vàng, giá trứng, thời gian đẻ trứng THẬT SỰ đều do server.js quyết định —
+   file HTML này không tự tính toán hay lưu số dư, tất cả qua API. */
+const ANIMALS = [
+  {id:'nhim_bien', name:'Nhím biển', emoji:'🌰', lvl:1},
+  {id:'oc_bien',   name:'Ốc biển',   emoji:'🐌', lvl:1},
+  {id:'cua',       name:'Cua',       emoji:'🦀', lvl:1},
+  {id:'tom_hum',   name:'Tôm hùm',   emoji:'🦞', lvl:1},
+  {id:'sao_bien',  name:'Sao biển',  emoji:'⭐', lvl:1},
+  {id:'sua',       name:'Sứa',       emoji:'🪼', lvl:6},
+  {id:'muc',       name:'Mực',       emoji:'🦑', lvl:6},
+  {id:'bach_tuoc', name:'Bạch tuộc', emoji:'🐙', lvl:6},
+  {id:'ca_thu',    name:'Cá thu',    emoji:'🐟', lvl:12},
+  {id:'ca_he',     name:'Cá hề',     emoji:'🐠', lvl:12},
+  {id:'ca_ngua',   name:'Cá ngựa',   emoji:'🐡', lvl:12},
+  {id:'ca_map',    name:'Cá mập',    emoji:'🦈', lvl:20},
+  {id:'ca_heo',    name:'Cá heo',    emoji:'🐬', lvl:20},
+  {id:'ca_duoi',   name:'Cá đuối',   emoji:'🛸', lvl:20},
+  {id:'ca_kiem',   name:'Cá kiếm',   emoji:'⚔️', lvl:20},
+  {id:'ran_bien',  name:'Rắn biển',  emoji:'🐍', lvl:30},
+  {id:'hai_cau',   name:'Hải cẩu',   emoji:'🦭', lvl:40},
+  {id:'rai_ca',    name:'Rái cá',    emoji:'🦦', lvl:50},
+  {id:'san_ho',    name:'San hô',    emoji:'🪸', lvl:70},
+  {id:'rua_ca_sau',name:'Rùa cá sấu',emoji:'🐢', lvl:80},
+  {id:'su_tu_bien',name:'Sư tử biển',emoji:'🦁', lvl:100},
+];
+const TIERS = [1,6,12,20,30,40,50,70,80,100];
+
+/* ===================== TRẠNG THÁI (chỉ để hiển thị, luôn lấy từ server) ===================== */
+let authToken = null;
+let state = { level:1, xp:0, xpNeeded:500, gold:0, diamonds:0, goldPerDiamond:800000, vndPerDiamond:500, minWithdrawKc:4, maxWithdrawKc:10, owned:{}, eggs:{}, prices:{}, eggValues:{}, nextEggSec:{}, withdrawHistory:[] };
+const tg = window.Telegram ? window.Telegram.WebApp : null;
+
+function fmt(n){ return Math.floor(n||0).toLocaleString('vi-VN'); }
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._h);
+  showToast._h = setTimeout(()=>t.classList.remove('show'), 2000);
+}
+
+function setConnError(hasError){
+  document.getElementById('connBanner').classList.toggle('show', !!hasError);
+}
+
+/* ===================== GỌI API ===================== */
+async function apiFetch(path, options={}){
+  const headers = Object.assign({'Content-Type':'application/json'}, options.headers||{});
+  if(authToken) headers['Authorization'] = 'Bearer ' + authToken;
+  const res = await fetch(API_BASE + path, Object.assign({}, options, {headers}));
+  let data = {};
+  try{ data = await res.json(); }catch(e){}
+  if(!res.ok){ throw new Error(data.error || 'Lỗi máy chủ (' + res.status + ')'); }
+  setConnError(false);
+  return data;
+}
+
+async function authenticate(){
+  try{
+    const initData = tg ? tg.initData : '';
+    if(!initData){
+      showToast('⚠️ Hãy mở game từ trong Telegram để đăng nhập.');
+      return;
+    }
+    const data = await apiFetch('/api/auth', {method:'POST', body: JSON.stringify({initData})});
+    authToken = data.token;
+    applyState(data.state);
+  }catch(e){
+    setConnError(true);
+    showToast(e.message);
+  }
+}
+
+async function refreshState(){
+  if(!authToken) return;
+  try{
+    const data = await apiFetch('/api/state');
+    applyState(data.state);
+  }catch(e){
+    setConnError(true);
+  }
+}
+
+async function buyAnimal(id){
+  if(!authToken){ showToast('Đang kết nối máy chủ, thử lại sau giây lát...'); return; }
+  try{
+    const data = await apiFetch('/api/buy', {method:'POST', body: JSON.stringify({animalId:id})});
+    applyState(data.state);
+    showToast('Đã mua thành công! 🎉');
+  }catch(e){ showToast(e.message); }
+}
+
+async function sellEgg(id, qty){
+  try{
+    const data = await apiFetch('/api/sell', {method:'POST', body: JSON.stringify({animalId:id, qty})});
+    applyState(data.state);
+  }catch(e){ showToast(e.message); }
+}
+
+async function sellAllEggs(){
+  try{
+    const data = await apiFetch('/api/sell-all', {method:'POST'});
+    applyState(data.state);
+    showToast('Đã bán hết trứng!');
+  }catch(e){ showToast(e.message); }
+}
+
+function updateKcCost(){
+  const kc = parseInt(document.getElementById('kcAmount').value, 10) || 0;
+  document.getElementById('kcCostPreview').textContent = fmt(kc * (state.goldPerDiamond || 800000));
+  document.getElementById('kcGoldNow').textContent = fmt(state.gold);
+}
+
+async function convertDiamond(){
+  const diamonds = parseInt(document.getElementById('kcAmount').value, 10);
+  if(!diamonds || diamonds <= 0){ showToast('Vui lòng nhập số kim cương hợp lệ.'); return; }
+  try{
+    const data = await apiFetch('/api/convert-diamond', {method:'POST', body: JSON.stringify({diamonds})});
+    applyState(data.state);
+    document.getElementById('kcAmount').value = '';
+    updateKcCost();
+    showToast(`✅ Đã đổi thành công ${diamonds} 💎!`);
+  }catch(e){ showToast(e.message); }
+}
+
+function updateWdVnd(){
+  const kc = parseInt(document.getElementById('wdAmount').value, 10) || 0;
+  document.getElementById('wdVndPreview').textContent = fmt(kc * (state.vndPerDiamond || 500)) + 'đ';
+  document.getElementById('wdKcNow').textContent = fmt(state.diamonds);
+}
+
+async function submitWithdraw(){
+  const amount = parseInt(document.getElementById('wdAmount').value, 10);
+  const method = document.getElementById('wdMethod').value;
+  const minKc = state.minWithdrawKc || 4;
+  const maxKc = state.maxWithdrawKc || 10;
+  if(!amount || amount < minKc || amount > maxKc){ showToast(`Vui lòng nhập từ ${minKc} đến ${maxKc} kim cương.`); return; }
+
+  let details = {};
+  if(method === 'zalopay'){
+    details.walletNumber = document.getElementById('wdWalletNumber').value.trim();
+    if(!details.walletNumber){ showToast('Vui lòng nhập số điện thoại ví ZaloPay.'); return; }
+  } else {
+    details.bankName = document.getElementById('wdBankName').value;
+    details.accountNumber = document.getElementById('wdAccountNumber').value.trim();
+    details.accountHolder = document.getElementById('wdAccountHolder').value.trim();
+    if(!details.accountNumber || !details.accountHolder){ showToast('Vui lòng nhập đầy đủ thông tin ngân hàng.'); return; }
+  }
+
+  try{
+    const data = await apiFetch('/api/withdraw', {method:'POST', body: JSON.stringify({amount, method, details})});
+    applyState(data.state);
+    document.getElementById('wdAmount').value = '';
+    updateWdVnd();
+    showToast('✅ Đã gửi yêu cầu, chờ quản trị viên duyệt!');
+  }catch(e){ showToast(e.message); }
+}
+
+function toggleWithdrawFields(){
+  const method = document.getElementById('wdMethod').value;
+  document.getElementById('wdFieldsWallet').style.display = method === 'zalopay' ? 'block' : 'none';
+  document.getElementById('wdFieldsBank').style.display = method === 'bank' ? 'block' : 'none';
+}
+
+/* ===================== ÁP DỤNG TRẠNG THÁI TỪ SERVER ===================== */
+function applyState(s){
+  state = Object.assign(state, s);
+  renderHeader();
+  renderShop();
+  renderFarm();
+  renderMarket();
+  renderWithdrawHistory();
+  updateKcCost();
+  updateWdVnd();
+}
+
+/* ===================== RENDER ===================== */
+function renderHeader(){
+  document.getElementById('lvlText').textContent = state.level;
+  document.getElementById('goldText').textContent = fmt(state.gold);
+  const totalEggs = Object.values(state.eggs||{}).reduce((a,b)=>a+b,0);
+  document.getElementById('eggTotalText').textContent = fmt(totalEggs);
+  document.getElementById('diamondText').textContent = fmt(state.diamonds);
+  const need = state.xpNeeded || (state.level*500);
+  document.getElementById('xpFill').style.width = Math.min(100, (state.xp/need)*100) + '%';
+  document.getElementById('xpText').textContent = `${fmt(state.xp)}/${fmt(need)}`;
+}
+
+function renderFarm(){
+  const grid = document.getElementById('farmGrid');
+  const ownedList = ANIMALS.filter(a => (state.owned[a.id]||0) > 0);
+  document.getElementById('farmEmpty').style.display = ownedList.length ? 'none' : 'block';
+  grid.innerHTML = ownedList.map(a=>{
+    const owned = state.owned[a.id];
+    const eggs = state.eggs[a.id] || 0;
+    const eggVal = (state.eggValues && state.eggValues[a.id]) || 0;
+    const secLeft = Math.max(0, state.nextEggSec ? (state.nextEggSec[a.id] ?? 0) : 0);
+    const eggTime = state.eggTime || 30;
+    const pct = Math.min(100, ((eggTime - secLeft) / eggTime) * 100);
+    return `
+    <div class="card">
+      <span class="owned-badge">x${owned}</span>
+      <span class="emoji">${a.emoji}</span>
+      <div class="name">${a.name}</div>
+      <div class="sub">🥚 ${fmt(eggVal)} xu/quả</div>
+      <div class="progress-bg"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="sub">⏱ ${secLeft}s · đang có ${eggs} trứng</div>
+    </div>`;
+  }).join('');
+}
+
+function renderShop(){
+  const el = document.getElementById('shopContent');
+  el.innerHTML = TIERS.map(lvl=>{
+    const list = ANIMALS.filter(a=>a.lvl===lvl);
+    const unlocked = state.level >= lvl;
+    return `<div class="section-title">${unlocked ? '🔓' : '🔒'} Mở khoá từ cấp ${lvl}</div>
+    <div class="grid">
+      ${list.map(a=>{
+        const owned = state.owned[a.id] || 0;
+        const price = (state.prices && state.prices[a.id]) || 0;
+        const eggVal = (state.eggValues && state.eggValues[a.id]) || 0;
+        const canAfford = state.gold >= price;
+        const locked = state.level < a.lvl;
+        return `
+        <div class="card ${locked?'locked':''}">
+          ${owned>0?`<span class="owned-badge">x${owned}</span>`:''}
+          <span class="emoji">${a.emoji}</span>
+          <div class="name">${a.name}</div>
+          <div class="sub">💰 ${fmt(price)} vàng</div>
+          <div class="sub">🥚 ${fmt(eggVal)} xu/quả</div>
+          <button class="buy" ${(locked||!canAfford)?'disabled':''} onclick="buyAnimal('${a.id}')">
+            ${locked ? `Cần cấp ${a.lvl}` : (canAfford ? 'Mua' : 'Thiếu vàng')}
+          </button>
+          ${locked?`<div class="lock-badge"><span class="lockicon">🔒</span><span>Cấp ${a.lvl}</span></div>`:''}
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+function renderMarket(){
+  const list = document.getElementById('marketList');
+  const withEggs = ANIMALS.filter(a => (state.eggs[a.id]||0) > 0);
+  document.getElementById('marketEmpty').style.display = withEggs.length ? 'none' : 'block';
+  list.innerHTML = withEggs.map(a=>{
+    const n = state.eggs[a.id];
+    const eggVal = (state.eggValues && state.eggValues[a.id]) || 0;
+    return `
+    <div class="egg-row">
+      <span class="emoji">${a.emoji}</span>
+      <div class="info">
+        <div class="name">${a.name}</div>
+        <div class="price">${fmt(eggVal)} xu/quả</div>
+      </div>
+      <div class="qty">${n}</div>
+      <button class="sell" onclick="sellEgg('${a.id}', ${n})">Bán (+${fmt(eggVal*n)})</button>
+    </div>`;
+  }).join('');
+}
+
+function renderWithdrawHistory(){
+  const list = document.getElementById('withdrawHistoryList');
+  const history = state.withdrawHistory || [];
+  document.getElementById('withdrawEmpty').style.display = history.length ? 'none' : 'block';
+  const statusLabel = {pending:'Đang chờ duyệt', approved:'Đã duyệt', rejected:'Bị từ chối'};
+  list.innerHTML = history.map(h=>`
+    <div class="wd-history-item">
+      <div class="top">
+        <span>💎 ${fmt(h.amount)} (${fmt(h.vndAmount || h.amount*500)}đ)</span>
+        <span class="wd-status ${h.status}">${statusLabel[h.status]||h.status}</span>
+      </div>
+      <div style="margin-top:4px;color:#9dc4dc;">
+        ${h.method === 'zalopay' ? '📱 ZaloPay - ' + (h.details?.walletNumber||'') : '🏦 ' + (h.details?.bankName||'') + ' - ' + (h.details?.accountNumber||'') + ' (' + (h.details?.accountHolder||'') + ')'}
+      </div>
+      <div style="margin-top:2px;color:#728fa3;font-size:10.5px;">${new Date(h.createdAt).toLocaleString('vi-VN')}</div>
+    </div>
+  `).join('');
+}
+
+/* ===================== TABS ===================== */
+function switchView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('nav.tabs button, .bottombar button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.view === name);
+  });
+}
+document.querySelectorAll('nav.tabs button, .bottombar button').forEach(b=>{
+  b.addEventListener('click', ()=>switchView(b.dataset.view));
+});
+
+/* ===================== ĐỒNG HỒ ĐẾM NGƯỢC (chỉ để hiển thị, KHÔNG cộng trứng) ===================== */
+setInterval(()=>{
+  if(!state.nextEggSec) return;
+  let any = false;
+  Object.keys(state.nextEggSec).forEach(id=>{
+    if(state.nextEggSec[id] > 0){ state.nextEggSec[id] -= 1; any = true; }
+  });
+  if(any) renderFarm();
+}, 1000);
+
+/* Đồng bộ số dư thật với server định kỳ — mọi số liệu hiển thị đều bị
+   ghi đè bởi dữ liệu server trả về, không tin dữ liệu tính ở trình duyệt. */
+setInterval(refreshState, 8000);
+
+/* ===================== KHỞI ĐỘNG ===================== */
+if(tg){ tg.ready(); tg.expand(); }
+authenticate();
+</script>
+</body>
+</html>
