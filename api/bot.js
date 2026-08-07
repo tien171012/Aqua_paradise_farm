@@ -2,8 +2,10 @@ export default async function handler(req, res) {
   if (!req.body || !req.body.message) {
     return res.status(200).send('OK');
   }
+
   const { message } = req.body;
   const tk = '8899847432:AAE8W1MECinS2t3Zv8w7Moe7IqMfac_-UbU';
+
   try {
     await fetch(`https://telegram.org{tk}/sendMessage`, {
       method: 'POST',
@@ -16,5 +18,7 @@ export default async function handler(req, res) {
   } catch (e) {
     console.error("Lỗi:", e);
   }
+
   return res.status(200).send('OK');
-}
+          }
+    
